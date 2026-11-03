@@ -1,0 +1,28 @@
+# dependencies / build output (สร้างใหม่ใน container)
+node_modules
+dist
+dist-ssr
+
+# git / editor / OS
+.git
+.gitignore
+.vscode
+.idea
+*.log
+.DS_Store
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# เอกสาร / รูปตัวอย่าง / zip
+README.md
+sudoku-game.zip
+*.md
+screenshots
+
+# docker files เองไม่ต้องเข้า context
+Dockerfile
+.dockerignore
+docker-compose.yml
