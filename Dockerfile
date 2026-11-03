@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------
 # Stage 1 — build (Node) : compile TypeScript + Vite bundle
 # ------------------------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # คัดลอก manifest ก่อนเพื่อให้ layer ของ dependency ถูก cache
