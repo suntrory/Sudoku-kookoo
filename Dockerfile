@@ -13,6 +13,10 @@ RUN npm ci
 # คัดลอกซอร์สที่ใช้ build (ไม่รวม node_modules/dist เพราะมี .dockerignore)
 COPY . .
 
+# .env ถูก .dockerignore ตัดออก → รับค่า GA ผ่าน build arg แทน (Vite ฝังค่าลง bundle ตอน build)
+ARG VITE_GA_MEASUREMENT_ID
+ENV VITE_GA_MEASUREMENT_ID=$VITE_GA_MEASUREMENT_ID
+
 # tsc -b (typecheck) && vite build → /app/dist
 RUN npm run build
 

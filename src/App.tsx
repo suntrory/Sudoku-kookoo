@@ -20,7 +20,9 @@ export default function App() {
 
   //Google Analytics
   useEffect(() => {
-      ReactGA.initialize(import.meta.env.GA_MEASUREMENT_ID);
+      const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID
+      if (!measurementId) return
+      ReactGA.initialize(measurementId);
       ReactGA.send({ hitType: "pageview", page: window.location.pathname });
   }, []);
 
