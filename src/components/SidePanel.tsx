@@ -151,10 +151,16 @@ export function SidePanel({
           onChange={(v) => onChangeSettings({ showMistakes: v })}
         />
         <Toggle
-          label="ไฮไลต์แถว/คอลัมน์"
-          description="เน้นช่องที่เกี่ยวข้องกับช่องที่เลือก"
+          label="ไฮไลต์บล็อก 3×3"
+          description="เน้นช่องในบล็อกเดียวกับช่องที่เลือก"
           checked={settings.highlightPeers}
           onChange={(v) => onChangeSettings({ highlightPeers: v })}
+        />
+        <Toggle
+          label="ไฮไลต์แนวนอน/แนวตั้ง"
+          description="กดช่องไหน จะเน้นทั้งแถวและทั้งคอลัมน์ของช่องนั้น"
+          checked={settings.highlightLines}
+          onChange={(v) => onChangeSettings({ highlightLines: v })}
         />
         <Toggle
           label="ไฮไลต์เลขเดียวกัน"

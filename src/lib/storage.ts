@@ -52,6 +52,8 @@ export interface Settings {
   highlightPeers: boolean
   /** ไฮไลต์ช่องที่เป็นเลขเดียวกัน */
   highlightSame: boolean
+  /** ไฮไลต์ทั้งแถว (แนวนอน) และคอลัมน์ (แนวตั้ง) ของช่องที่เลือก */
+  highlightLines: boolean
   /** ลบโน้ตของเลขที่วางแล้วให้อัตโนมัติ */
   autoCleanNotes: boolean
 }
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showMistakes: true,
   highlightPeers: true,
   highlightSame: true,
+  highlightLines: true,
   autoCleanNotes: true,
 }
 
@@ -180,6 +183,8 @@ export function loadSettings(): Settings {
     showMistakes: typeof raw.showMistakes === 'boolean' ? raw.showMistakes : DEFAULT_SETTINGS.showMistakes,
     highlightPeers: typeof raw.highlightPeers === 'boolean' ? raw.highlightPeers : DEFAULT_SETTINGS.highlightPeers,
     highlightSame: typeof raw.highlightSame === 'boolean' ? raw.highlightSame : DEFAULT_SETTINGS.highlightSame,
+    highlightLines:
+      typeof raw.highlightLines === 'boolean' ? raw.highlightLines : DEFAULT_SETTINGS.highlightLines,
     autoCleanNotes: typeof raw.autoCleanNotes === 'boolean' ? raw.autoCleanNotes : DEFAULT_SETTINGS.autoCleanNotes,
   }
 }

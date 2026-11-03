@@ -501,6 +501,17 @@ button {
   background: rgba(var(--accent-rgb), 0.075);
 }
 
+/* แนวนอน (แถว) / แนวตั้ง (คอลัมน์) ของช่องที่เลือก */
+.cell.cell--row,
+.cell.cell--col {
+  background: rgba(var(--accent-rgb), 0.16);
+}
+
+/* จุดตัดของแถวและคอลัมน์ที่เลือก — เข้มกว่ารอบ ๆ เล็กน้อย */
+.cell.cell--cross {
+  background: rgba(var(--accent-rgb), 0.24);
+}
+
 .cell--same {
   background: rgba(var(--mint-rgb), 0.16);
 }

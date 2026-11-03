@@ -11,6 +11,7 @@ interface BoardProps {
   hintCells: number[]
   highlightPeers: boolean
   highlightSame: boolean
+  highlightLines: boolean
   paused: boolean
   onSelect: (cell: number) => void
   onResume: () => void
@@ -27,6 +28,7 @@ function BoardComponent({
   hintCells,
   highlightPeers,
   highlightSame,
+  highlightLines,
   paused,
   onSelect,
   onResume,
@@ -37,6 +39,8 @@ function BoardComponent({
   )
   const hintSet = useMemo(() => new Set(hintCells), [hintCells])
   const selectedDigit = selected !== null ? values[selected] : 0
+  const selectedRow = selected !== null ? Math.floor(selected / 9) : -1
+  const selectedCol = selected !== null ? selected % 9 : -1
 
   return (
     <div className="board-wrap">
@@ -49,6 +53,13 @@ function BoardComponent({
           if (wrong.has(i)) classes.push('cell--wrong')
           if (i === selected) classes.push('cell--selected')
           if (highlightPeers && peerSet.has(i)) classes.push('cell--peer')
+          if (highlightLines && selected !== null && i !== selected) {
+            const sameRow = Math.floor(i / 9) === selectedRow
+            const sameCol = i % 9 === selectedCol
+            if (sameRow && sameCol) classes.push('cell--cross')
+            else if (sameRow) classes.push('cell--row')
+            else if (sameCol) classes.push('cell--col')
+          }
           if (highlightSame && selectedDigit && value === selectedDigit && i !== selected) classes.push('cell--same')
           if (hintSet.has(i)) classes.push('cell--hint')
 

@@ -213,6 +213,7 @@ export default function App() {
                 hintCells={hintCells}
                 highlightPeers={state.settings.highlightPeers}
                 highlightSame={state.settings.highlightSame}
+                highlightLines={state.settings.highlightLines}
                 paused={state.paused}
                 onSelect={select}
                 onResume={actions.togglePause}
