@@ -8,6 +8,7 @@ import { WinDialog } from './components/WinDialog'
 import { useGame, wrongCells } from './hooks/useGame'
 import { DIFFICULTY_META, countFilled } from './lib/sudoku'
 import type { Difficulty } from './lib/sudoku'
+import ReactGA from 'react-ga4';
 
 export default function App() {
   const { state, actions } = useGame()
@@ -16,6 +17,12 @@ export default function App() {
   const [lastGameId, setLastGameId] = useState(state.createdAt)
 
   const { input, erase, move, toggleNotes, hint, undo, togglePause, select, dismissToast } = actions
+
+  //Google Analytics
+  useEffect(() => {
+      ReactGA.initialize(import.meta.env.GA_MEASUREMENT_ID);
+      ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+  }, []);
 
   // เกมใหม่ (createdAt เปลี่ยน) → เคลียร์ dialog/confirm ที่ค้างอยู่
   if (lastGameId !== state.createdAt) {
