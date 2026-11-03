@@ -1,17 +1,30 @@
 import type { CSSProperties } from 'react'
 import { DIFFICULTIES, DIFFICULTY_META, formatTime } from '../lib/sudoku'
 import type { Difficulty } from '../lib/sudoku'
+import type { Theme } from '../lib/theme'
 
 interface TopBarProps {
   difficulty: Difficulty
   elapsed: number
   paused: boolean
   status: 'playing' | 'won'
+  theme: Theme
   onNewGame: (difficulty: Difficulty) => void
   onTogglePause: () => void
+  onToggleTheme: () => void
 }
 
-export function TopBar({ difficulty, elapsed, paused, status, onNewGame, onTogglePause }: TopBarProps) {
+export function TopBar({
+  difficulty,
+  elapsed,
+  paused,
+  status,
+  theme,
+  onNewGame,
+  onTogglePause,
+  onToggleTheme,
+}: TopBarProps) {
+  const nextLabel = theme === 'dark' ? 'เปลี่ยนเป็นธีมสว่าง' : 'เปลี่ยนเป็นธีมมืด'
   return (
     <header className="app-header">
       <div className="brand">
@@ -31,6 +44,15 @@ export function TopBar({ difficulty, elapsed, paused, status, onNewGame, onToggl
           </span>
           <span className="timer-value">{formatTime(elapsed)}</span>
         </div>
+        <button
+          type="button"
+          className="btn btn--ghost theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={nextLabel}
+          title={nextLabel}
+        >
+          {theme === 'dark' ? '☀' : '☾'}
+        </button>
         <button
           type="button"
           className="btn btn--ghost"

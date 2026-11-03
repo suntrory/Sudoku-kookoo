@@ -1,5 +1,6 @@
 import { DIFFICULTY_META, formatTime } from '../lib/sudoku'
 import type { Difficulty } from '../lib/sudoku'
+import { accentInk } from '../lib/theme'
 
 interface WinDialogProps {
   difficulty: Difficulty
@@ -34,7 +35,7 @@ export function WinDialog({ difficulty, elapsed, hints, mistakes, onAgain, onClo
         <h2 id="win-title" className="modal-title">
           แก้สำเร็จแล้ว!
         </h2>
-        <p className="modal-sub" style={{ color: meta.accent }}>
+        <p className="modal-sub accent-ink" style={accentInk(meta.accent)}>
           ระดับ{meta.labelTh} · {meta.label}
         </p>
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DIFFICULTIES, DIFFICULTY_META, formatTime } from '../lib/sudoku'
 import type { Difficulty } from '../lib/sudoku'
 import { storageUsage } from '../lib/storage'
+import { accentInk } from '../lib/theme'
 import type { Settings, StatsStore } from '../lib/storage'
 
 const RATING_LABEL: Record<number, string> = {
@@ -74,7 +75,7 @@ export function SidePanel({
         <h2 className="panel-title">กระดานนี้</h2>
         <div className="fact-row">
           <span className="fact-key">ระดับ</span>
-          <span className="fact-value" style={{ color: meta.accent }}>
+          <span className="fact-value accent-ink" style={accentInk(meta.accent)}>
             {meta.labelTh} · {meta.label}
           </span>
         </div>
@@ -99,7 +100,7 @@ export function SidePanel({
             const s = stats.byDifficulty[d]
             return (
               <div className="stat-row" key={d}>
-                <span className="stat-name" style={{ color: DIFFICULTY_META[d].accent }}>
+                <span className="stat-name accent-ink" style={accentInk(DIFFICULTY_META[d].accent)}>
                   {DIFFICULTY_META[d].labelTh}
                 </span>
                 <span className="stat-best">{s.bestTime !== null ? formatTime(s.bestTime) : '—'}</span>

@@ -8,10 +8,20 @@ import { WinDialog } from './components/WinDialog'
 import { useGame, wrongCells } from './hooks/useGame'
 import { DIFFICULTY_META, countFilled } from './lib/sudoku'
 import type { Difficulty } from './lib/sudoku'
+import { applyTheme, loadTheme, saveTheme } from './lib/theme'
+import type { Theme } from './lib/theme'
 import ReactGA from 'react-ga4';
 
 export default function App() {
   const { state, actions } = useGame()
+  const [theme, setTheme] = useState<Theme>(loadTheme)
+
+  const toggleTheme = () => {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark'
+    applyTheme(next)
+    saveTheme(next)
+    setTheme(next)
+  }
   const [winDismissed, setWinDismissed] = useState(false)
   const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty | null>(null)
   const [lastGameId, setLastGameId] = useState(state.createdAt)
@@ -135,8 +145,10 @@ export default function App() {
           elapsed={state.elapsed}
           paused={state.paused}
           status={state.status}
+          theme={theme}
           onNewGame={requestNewGame}
           onTogglePause={actions.togglePause}
+          onToggleTheme={toggleTheme}
         />
 
         <main className="layout">
