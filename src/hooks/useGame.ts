@@ -2,6 +2,7 @@ import { useCallback, useEffect, useReducer } from 'react'
 import { PEERS, generatePuzzle, isSolved } from '../lib/sudoku'
 import type { Difficulty, Grid, Puzzle } from '../lib/sudoku'
 import { findHint } from '../lib/hints'
+import { t } from '../lib/i18n'
 import type { Hint } from '../lib/hints'
 import {
   clearGame,
@@ -170,7 +171,7 @@ function finish(state: GameState): GameState {
     status: 'won',
     paused: false,
     hint: null,
-    toast: { text: 'แก้สำเร็จแล้ว! 🎉', tone: 'good' },
+    toast: { text: t(state.settings.lang, 'toast.solved'), tone: 'good' },
     stats: bumpCompleted(state),
   }
 }
@@ -227,7 +228,7 @@ function reducer(state: GameState, action: Action): GameState {
         hintsUsed: 0,
         mistakes: 0,
         hint: null,
-        toast: { text: 'เริ่มกระดานนี้ใหม่แล้ว', tone: 'info' },
+        toast: { text: t(state.settings.lang, 'toast.restarted'), tone: 'info' },
         hasChecked: false,
         history: [],
         createdAt: Date.now(),
@@ -299,7 +300,7 @@ function reducer(state: GameState, action: Action): GameState {
 
     case 'hint': {
       if (state.status !== 'playing') return state
-      const hint = findHint(state.values, state.puzzle.solution)
+      const hint = findHint(state.values, state.puzzle.solution, state.settings.lang)
       if (!hint) return state
 
       if (hint.kind === 'mistake') {
@@ -347,8 +348,11 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         hasChecked: true,
         toast: wrong.length
-          ? { text: `พบ ${wrong.length} ช่องที่ยังไม่ถูก`, tone: 'bad' }
-          : { text: 'ทุกช่องที่เติมถูกต้องแล้ว 👍', tone: 'good' },
+          ? {
+              text: t(state.settings.lang, 'toast.foundWrong', { n: wrong.length }),
+              tone: 'bad',
+            }
+          : { text: t(state.settings.lang, 'toast.allCorrect'), tone: 'good' },
       }
     }
 
@@ -371,11 +375,22 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.status !== 'playing' || state.paused) return state
       return { ...state, elapsed: state.elapsed + 1 }
 
-    case 'settings':
-      return { ...state, settings: { ...state.settings, ...action.patch } }
+    case 'settings': {
+      const settings = { ...state.settings, ...action.patch }
+      // เปลี่ยนภาษาแล้ว hint ที่เปิดค้างอยู่ต้องเปลี่ยนภาษาตาม
+      let hint = state.hint
+      if (hint && action.patch.lang && action.patch.lang !== state.settings.lang) {
+        hint = findHint(state.values, state.puzzle.solution, settings.lang) ?? hint
+      }
+      return { ...state, settings, hint }
+    }
 
     case 'clearStats':
-      return { ...state, stats: defaultStatsStore(), toast: { text: 'ล้างสถิติแล้ว', tone: 'info' } }
+      return {
+        ...state,
+        stats: defaultStatsStore(),
+        toast: { text: t(state.settings.lang, 'toast.statsCleared'), tone: 'info' },
+      }
 
     default:
       return state

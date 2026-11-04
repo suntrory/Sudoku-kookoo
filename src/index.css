@@ -98,6 +98,51 @@
   padding-inline: 11px;
 }
 
+.lang-toggle {
+  min-width: 46px;
+  padding-inline: 10px;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+}
+
+/* ตัวเลือกภาษาในหน้าตั้งค่า */
+.setting-row--lang {
+  align-items: center;
+}
+
+.lang-choices {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(var(--fg-rgb), 0.05);
+  border: 1px solid var(--panel-border);
+  flex: none;
+}
+
+.lang-choice {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.lang-choice:hover {
+  color: var(--text);
+}
+
+.lang-choice--active {
+  background: rgba(var(--accent-rgb), 0.18);
+  color: var(--accent-text);
+}
+
 * {
   box-sizing: border-box;
 }

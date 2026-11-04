@@ -25,7 +25,6 @@ export interface DifficultyMeta {
   /** ระดับเทคนิคสูงสุดที่อนุญาตให้ต้องใช้ */
   maxLevel: number
   accent: string
-  blurb: string
 }
 
 export const DIFFICULTY_META: Record<Difficulty, DifficultyMeta> = {
@@ -36,7 +35,6 @@ export const DIFFICULTY_META: Record<Difficulty, DifficultyMeta> = {
     clues: [41, 47],
     maxLevel: 1,
     accent: '#34d399',
-    blurb: 'เลขตั้งต้นเยอะ ไล่ทีละช่องก็จบ (Singles เท่านั้น)',
   },
   medium: {
     key: 'medium',
@@ -45,7 +43,6 @@ export const DIFFICULTY_META: Record<Difficulty, DifficultyMeta> = {
     clues: [33, 39],
     maxLevel: 2,
     accent: '#60a5fa',
-    blurb: 'เลขตั้งต้นน้อยลง ต้องไล่หาตัวเลือกมากขึ้น',
   },
   hard: {
     key: 'hard',
@@ -54,7 +51,6 @@ export const DIFFICULTY_META: Record<Difficulty, DifficultyMeta> = {
     clues: [26, 31],
     maxLevel: 5,
     accent: '#f472b6',
-    blurb: 'เลขตั้งต้นน้อย ต้องคิดหลายชั้น หรือลองผิดลองถูก',
   },
 }
 
@@ -79,12 +75,6 @@ export const UNITS: number[][] = (() => {
   }
   return units
 })()
-
-export const UNIT_NAMES = [
-  ...Array.from({ length: 9 }, (_, i) => `แถว ${i + 1}`),
-  ...Array.from({ length: 9 }, (_, i) => `คอลัมน์ ${i + 1}`),
-  ...Array.from({ length: 9 }, (_, i) => `บล็อก ${i + 1}`),
-]
 
 const UNITS_OF: number[][] = (() => {
   const list: number[][] = Array.from({ length: 81 }, () => [])

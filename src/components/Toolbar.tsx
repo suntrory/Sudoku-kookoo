@@ -1,10 +1,13 @@
 import type { Hint } from '../lib/hints'
+import { t } from '../lib/i18n'
+import type { Lang } from '../lib/i18n'
 
 interface ToolbarProps {
   notesMode: boolean
   canUndo: boolean
   disabled: boolean
   hintsUsed: number
+  lang: Lang
   onToggleNotes: () => void
   onErase: () => void
   onUndo: () => void
@@ -17,6 +20,7 @@ export function Toolbar({
   canUndo,
   disabled,
   hintsUsed,
+  lang,
   onToggleNotes,
   onErase,
   onUndo,
@@ -24,48 +28,72 @@ export function Toolbar({
   onCheck,
 }: ToolbarProps) {
   return (
-    <div className="tools" role="group" aria-label="เครื่องมือช่วยเล่น">
+    <div className="tools" role="group" aria-label={t(lang, 'tools.group')}>
       <button
         type="button"
         className={`tool${notesMode ? ' tool--active' : ''}`}
         onClick={onToggleNotes}
         disabled={disabled}
         aria-pressed={notesMode}
-        title="โหมดจดโน้ต (N)"
+        title={t(lang, 'tools.notesTitle')}
       >
         <span className="tool-icon" aria-hidden="true">
           ✏️
         </span>
-        <span className="tool-label">โน้ต</span>
+        <span className="tool-label">{t(lang, 'tools.notes')}</span>
       </button>
 
-      <button type="button" className="tool" onClick={onErase} disabled={disabled} title="ลบเลข (Backspace)">
+      <button
+        type="button"
+        className="tool"
+        onClick={onErase}
+        disabled={disabled}
+        title={t(lang, 'tools.eraseTitle')}
+      >
         <span className="tool-icon" aria-hidden="true">
           🧽
         </span>
-        <span className="tool-label">ลบ</span>
+        <span className="tool-label">{t(lang, 'tools.erase')}</span>
       </button>
 
-      <button type="button" className="tool" onClick={onUndo} disabled={disabled || !canUndo} title="ย้อนกลับ (U)">
+      <button
+        type="button"
+        className="tool"
+        onClick={onUndo}
+        disabled={disabled || !canUndo}
+        title={t(lang, 'tools.undoTitle')}
+      >
         <span className="tool-icon" aria-hidden="true">
           ↩️
         </span>
-        <span className="tool-label">ย้อนกลับ</span>
+        <span className="tool-label">{t(lang, 'tools.undo')}</span>
       </button>
 
-      <button type="button" className="tool tool--hint" onClick={onHint} disabled={disabled} title="ขอคำใบ้ (H)">
+      <button
+        type="button"
+        className="tool tool--hint"
+        onClick={onHint}
+        disabled={disabled}
+        title={t(lang, 'tools.hintTitle')}
+      >
         <span className="tool-icon" aria-hidden="true">
           💡
         </span>
-        <span className="tool-label">คำใบ้</span>
+        <span className="tool-label">{t(lang, 'tools.hint')}</span>
         {hintsUsed > 0 && <span className="tool-badge">{hintsUsed}</span>}
       </button>
 
-      <button type="button" className="tool" onClick={onCheck} disabled={disabled} title="ตรวจกระดาน">
+      <button
+        type="button"
+        className="tool"
+        onClick={onCheck}
+        disabled={disabled}
+        title={t(lang, 'tools.checkTitle')}
+      >
         <span className="tool-icon" aria-hidden="true">
           ✅
         </span>
-        <span className="tool-label">ตรวจ</span>
+        <span className="tool-label">{t(lang, 'tools.check')}</span>
       </button>
     </div>
   )
@@ -74,11 +102,12 @@ export function Toolbar({
 interface HintCardProps {
   hint: Hint
   hintsUsed: number
+  lang: Lang
   onApply: () => void
   onDismiss: () => void
 }
 
-export function HintCard({ hint, hintsUsed, onApply, onDismiss }: HintCardProps) {
+export function HintCard({ hint, hintsUsed, lang, onApply, onDismiss }: HintCardProps) {
   const canApply = (hint.kind === 'place' || hint.kind === 'reveal') && hint.digit
   return (
     <div className={`hint-card hint-card--${hint.kind}`} role="status" aria-live="polite">
@@ -90,13 +119,18 @@ export function HintCard({ hint, hintsUsed, onApply, onDismiss }: HintCardProps)
           <strong>{hint.title}</strong>
           <span className="hint-sub">
             {hint.kind === 'eliminate'
-              ? 'ตัดตัวเลือกในโน้ตให้แล้ว'
+              ? t(lang, 'hint.eliminated')
               : hint.kind === 'mistake'
-                ? 'ยังไม่นับเป็นการใช้คำใบ้'
-                : `ใช้คำใบ้ไปแล้ว ${hintsUsed} ครั้ง`}
+                ? t(lang, 'hint.notCounted')
+                : t(lang, hintsUsed === 1 ? 'hint.usedOne' : 'hint.used', { n: hintsUsed })}
           </span>
         </div>
-        <button type="button" className="hint-close" onClick={onDismiss} aria-label="ปิดคำใบ้">
+        <button
+          type="button"
+          className="hint-close"
+          onClick={onDismiss}
+          aria-label={t(lang, 'hint.close')}
+        >
           ×
         </button>
       </div>
@@ -104,11 +138,11 @@ export function HintCard({ hint, hintsUsed, onApply, onDismiss }: HintCardProps)
       <div className="hint-actions">
         {canApply && (
           <button type="button" className="btn btn--primary btn--sm" onClick={onApply}>
-            เติมเลข {hint.digit} ให้
+            {t(lang, 'hint.fill', { digit: hint.digit ?? '' })}
           </button>
         )}
         <button type="button" className="btn btn--ghost btn--sm" onClick={onDismiss}>
-          {canApply ? 'ลองเองก่อน' : 'เข้าใจแล้ว'}
+          {canApply ? t(lang, 'hint.try') : t(lang, 'hint.gotIt')}
         </button>
       </div>
     </div>

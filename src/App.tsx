@@ -6,15 +6,17 @@ import { DifficultyPicker, TopBar } from './components/TopBar'
 import { HintCard, Toolbar } from './components/Toolbar'
 import { WinDialog } from './components/WinDialog'
 import { useGame, wrongCells } from './hooks/useGame'
-import { DIFFICULTY_META, countFilled } from './lib/sudoku'
+import { countFilled } from './lib/sudoku'
 import type { Difficulty } from './lib/sudoku'
 import { applyTheme, loadTheme, saveTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
-import ReactGA from 'react-ga4';
+import { t } from './lib/i18n'
+import ReactGA from 'react-ga4'
 
 export default function App() {
   const { state, actions } = useGame()
   const [theme, setTheme] = useState<Theme>(loadTheme)
+  const lang = state.settings.lang
 
   const toggleTheme = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark'
@@ -22,6 +24,8 @@ export default function App() {
     saveTheme(next)
     setTheme(next)
   }
+  const toggleLang = () => actions.updateSettings({ lang: lang === 'en' ? 'th' : 'en' })
+
   const [winDismissed, setWinDismissed] = useState(false)
   const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty | null>(null)
   const [lastGameId, setLastGameId] = useState(state.createdAt)
@@ -30,11 +34,16 @@ export default function App() {
 
   //Google Analytics
   useEffect(() => {
-      const measurementId = import.meta.env.GA_MEASUREMENT_ID
-      if (!measurementId) return
-      ReactGA.initialize(measurementId);
-      ReactGA.send({ hitType: "pageview", page: window.location.pathname });
-  }, []);
+    const measurementId = import.meta.env.GA_MEASUREMENT_ID
+    if (!measurementId) return
+    ReactGA.initialize(measurementId)
+    ReactGA.send({ hitType: 'pageview', page: window.location.pathname })
+  }, [])
+
+  // sync <html lang> กับภาษาที่เลือก
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
 
   // เกมใหม่ (createdAt เปลี่ยน) → เคลียร์ dialog/confirm ที่ค้างอยู่
   if (lastGameId !== state.createdAt) {
@@ -146,19 +155,23 @@ export default function App() {
           paused={state.paused}
           status={state.status}
           theme={theme}
+          lang={lang}
           onNewGame={requestNewGame}
           onTogglePause={actions.togglePause}
           onToggleTheme={toggleTheme}
+          onToggleLang={toggleLang}
         />
 
         <main className="layout">
           <section className="game-column">
-            <DifficultyPicker current={state.puzzle.difficulty} onPick={requestNewGame} />
+            <DifficultyPicker current={state.puzzle.difficulty} lang={lang} onPick={requestNewGame} />
 
             {pendingDifficulty && (
               <div className="confirm-bar" role="alert">
                 <span>
-                  เริ่มเกมใหม่ระดับ{DIFFICULTY_META[pendingDifficulty].labelTh}? เกมที่เล่นอยู่จะหายไป
+                  {t(lang, 'app.confirmSwitch', {
+                    difficulty: t(lang, `diff.${pendingDifficulty}`),
+                  })}
                 </span>
                 <div className="confirm-bar__actions">
                   <button
@@ -169,14 +182,14 @@ export default function App() {
                       setPendingDifficulty(null)
                     }}
                   >
-                    เริ่มใหม่
+                    {t(lang, 'action.startOver')}
                   </button>
                   <button
                     type="button"
                     className="btn btn--ghost btn--sm"
                     onClick={() => setPendingDifficulty(null)}
                   >
-                    เล่นต่อ
+                    {t(lang, 'action.keepPlaying')}
                   </button>
                 </div>
               </div>
@@ -186,6 +199,7 @@ export default function App() {
               <HintCard
                 hint={state.hint}
                 hintsUsed={state.hintsUsed}
+                lang={lang}
                 onApply={actions.applyHint}
                 onDismiss={actions.dismiss}
               />
@@ -194,11 +208,12 @@ export default function App() {
             <div className="board-card">
               <div className="board-meta">
                 <span className="board-meta-chip">
-                  💡 คำใบ้ {state.hintsUsed} · ✗ ผิด {state.mistakes}
+                  {t(lang, 'app.hintsWrong', {
+                    hints: state.hintsUsed,
+                    mistakes: state.mistakes,
+                  })}
                 </span>
-                <span className="board-meta-chip">
-                  {filled}/81 ช่อง
-                </span>
+                <span className="board-meta-chip">{t(lang, 'app.cells', { filled })}</span>
               </div>
               <div className="progress" aria-hidden="true">
                 <span className="progress-bar" style={{ width: `${(filled / 81) * 100}%` }} />
@@ -215,22 +230,28 @@ export default function App() {
                 highlightSame={state.settings.highlightSame}
                 highlightLines={state.settings.highlightLines}
                 paused={state.paused}
+                lang={lang}
                 onSelect={select}
                 onResume={actions.togglePause}
               />
 
-              {state.notesMode && (
-                <p className="notes-banner">โหมดจดโน้ต — กดเลขเพื่อจด/ลบโน้ตในช่องที่เลือก</p>
-              )}
+              {state.notesMode && <p className="notes-banner">{t(lang, 'app.notesBanner')}</p>}
             </div>
 
-            <NumberPad values={state.values} notesMode={state.notesMode} disabled={locked} onInput={input} />
+            <NumberPad
+              values={state.values}
+              notesMode={state.notesMode}
+              disabled={locked}
+              lang={lang}
+              onInput={input}
+            />
 
             <Toolbar
               notesMode={state.notesMode}
               canUndo={state.history.length > 0}
               disabled={locked}
               hintsUsed={state.hintsUsed}
+              lang={lang}
               onToggleNotes={toggleNotes}
               onErase={erase}
               onUndo={undo}
@@ -238,9 +259,7 @@ export default function App() {
               onCheck={actions.check}
             />
 
-            <p className="keyboard-hint">
-              คีย์บอร์ด: ลูกศรเลื่อนช่อง · 1–9 ใส่เลข · Backspace ลบ · N โน้ต · H คำใบ้ · U ย้อนกลับ · P หยุด
-            </p>
+            <p className="keyboard-hint">{t(lang, 'app.keyboard')}</p>
           </section>
 
           <SidePanel
@@ -250,6 +269,7 @@ export default function App() {
             stats={state.stats}
             settings={state.settings}
             canReveal={canReveal}
+            lang={lang}
             onChangeSettings={actions.updateSettings}
             onClearStats={actions.clearStats}
             onRestart={actions.restart}
@@ -258,11 +278,11 @@ export default function App() {
         </main>
 
         <footer className="footer">
-          <span>React + Vite · ข้อมูลทั้งหมดเก็บใน localStorage ของเครื่องนี้</span>
+          <span>{t(lang, 'app.footerStorage')}</span>
           <span className="footer-dot" aria-hidden="true">
             •
           </span>
-          <span>ทุกกระดานผ่านการตรวจสอบ: มีคำตอบเดียว และเล่นจบได้จริง</span>
+          <span>{t(lang, 'app.footerVerified')}</span>
         </footer>
       </div>
 
@@ -278,6 +298,7 @@ export default function App() {
           elapsed={state.elapsed}
           hints={state.hintsUsed}
           mistakes={state.mistakes}
+          lang={lang}
           onAgain={() => requestNewGame(state.puzzle.difficulty)}
           onClose={() => setWinDismissed(true)}
         />

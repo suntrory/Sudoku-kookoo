@@ -4,6 +4,8 @@
  */
 import { DIFFICULTIES, verifyPuzzle } from './sudoku'
 import type { Difficulty, Grid, Puzzle } from './sudoku'
+import { DEFAULT_LANG, isLang } from './i18n'
+import type { Lang } from './i18n'
 
 const GAME_KEY = 'sudoku.v1.game'
 const STATS_KEY = 'sudoku.v1.stats'
@@ -56,6 +58,8 @@ export interface Settings {
   highlightLines: boolean
   /** ลบโน้ตของเลขที่วางแล้วให้อัตโนมัติ */
   autoCleanNotes: boolean
+  /** ภาษาของ UI — ค่าเริ่มต้นคืออังกฤษ */
+  lang: Lang
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -64,6 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highlightSame: true,
   highlightLines: true,
   autoCleanNotes: true,
+  lang: DEFAULT_LANG,
 }
 
 export function emptyStats(): Stats {
@@ -186,6 +191,7 @@ export function loadSettings(): Settings {
     highlightLines:
       typeof raw.highlightLines === 'boolean' ? raw.highlightLines : DEFAULT_SETTINGS.highlightLines,
     autoCleanNotes: typeof raw.autoCleanNotes === 'boolean' ? raw.autoCleanNotes : DEFAULT_SETTINGS.autoCleanNotes,
+    lang: isLang(raw.lang) ? raw.lang : DEFAULT_SETTINGS.lang,
   }
 }
 

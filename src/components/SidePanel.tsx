@@ -3,16 +3,9 @@ import { DIFFICULTIES, DIFFICULTY_META, formatTime } from '../lib/sudoku'
 import type { Difficulty } from '../lib/sudoku'
 import { storageUsage } from '../lib/storage'
 import { accentInk } from '../lib/theme'
+import { t } from '../lib/i18n'
+import type { Lang } from '../lib/i18n'
 import type { Settings, StatsStore } from '../lib/storage'
-
-const RATING_LABEL: Record<number, string> = {
-  0: 'ไม่ต้องใช้เทคนิค',
-  1: 'Singles',
-  2: 'Locked Candidates / Pairs',
-  3: 'X-Wing',
-  4: 'ต้องลองผิดลองถูก',
-  5: 'กระดานขัดแย้ง',
-}
 
 interface SidePanelProps {
   difficulty: Difficulty
@@ -21,6 +14,7 @@ interface SidePanelProps {
   stats: StatsStore
   settings: Settings
   canReveal: boolean
+  lang: Lang
   onChangeSettings: (patch: Partial<Settings>) => void
   onClearStats: () => void
   onRestart: () => void
@@ -52,6 +46,11 @@ function Toggle({
   )
 }
 
+const LANGS: Array<{ key: Lang; label: string }> = [
+  { key: 'en', label: 'English' },
+  { key: 'th', label: 'ไทย' },
+]
+
 export function SidePanel({
   difficulty,
   clues,
@@ -59,6 +58,7 @@ export function SidePanel({
   stats,
   settings,
   canReveal,
+  lang,
   onChangeSettings,
   onClearStats,
   onRestart,
@@ -72,36 +72,36 @@ export function SidePanel({
   return (
     <aside className="panel">
       <section className="panel-card">
-        <h2 className="panel-title">กระดานนี้</h2>
+        <h2 className="panel-title">{t(lang, 'side.puzzle')}</h2>
         <div className="fact-row">
-          <span className="fact-key">ระดับ</span>
+          <span className="fact-key">{t(lang, 'side.difficulty')}</span>
           <span className="fact-value accent-ink" style={accentInk(meta.accent)}>
-            {meta.labelTh} · {meta.label}
+            {lang === 'th' ? `${meta.labelTh} · ${meta.label}` : meta.label}
           </span>
         </div>
         <div className="fact-row">
-          <span className="fact-key">เลขตั้งต้น</span>
-          <span className="fact-value">{clues} ช่อง</span>
+          <span className="fact-key">{t(lang, 'side.givens')}</span>
+          <span className="fact-value">{t(lang, 'side.givensValue', { n: clues })}</span>
         </div>
         <div className="fact-row">
-          <span className="fact-key">เทคนิคที่ต้องใช้</span>
-          <span className="fact-value">{RATING_LABEL[ratingLevel] ?? '—'}</span>
+          <span className="fact-key">{t(lang, 'side.technique')}</span>
+          <span className="fact-value">{t(lang, `rating.${ratingLevel}`)}</span>
         </div>
         <div className="fact-row">
-          <span className="fact-key">ตรวจสอบแล้ว</span>
-          <span className="fact-value fact-value--ok">✓ คำตอบเดียว</span>
+          <span className="fact-key">{t(lang, 'side.verified')}</span>
+          <span className="fact-value fact-value--ok">{t(lang, 'side.unique')}</span>
         </div>
       </section>
 
       <section className="panel-card">
-        <h2 className="panel-title">สถิติในเครื่องนี้</h2>
+        <h2 className="panel-title">{t(lang, 'side.stats')}</h2>
         <div className="stat-table">
           {DIFFICULTIES.map((d) => {
             const s = stats.byDifficulty[d]
             return (
               <div className="stat-row" key={d}>
                 <span className="stat-name accent-ink" style={accentInk(DIFFICULTY_META[d].accent)}>
-                  {DIFFICULTY_META[d].labelTh}
+                  {t(lang, `diff.${d}`)}
                 </span>
                 <span className="stat-best">{s.bestTime !== null ? formatTime(s.bestTime) : '—'}</span>
                 <span className="stat-count">
@@ -111,7 +111,7 @@ export function SidePanel({
             )
           })}
         </div>
-        <p className="panel-note">เวลาที่ดีที่สุด · จำนวนที่แก้สำเร็จ/เริ่มเล่น</p>
+        <p className="panel-note">{t(lang, 'side.statsNote')}</p>
 
         {recent.length > 0 && (
           <ul className="recent">
@@ -122,7 +122,7 @@ export function SidePanel({
                   style={{ background: DIFFICULTY_META[r.difficulty].accent }}
                   aria-hidden="true"
                 />
-                <span className="recent-diff">{DIFFICULTY_META[r.difficulty].labelTh}</span>
+                <span className="recent-diff">{t(lang, `diff.${r.difficulty}`)}</span>
                 <span className="recent-time">{formatTime(r.time)}</span>
                 <span className="recent-hint">💡{r.hints}</span>
               </li>
@@ -132,54 +132,78 @@ export function SidePanel({
       </section>
 
       <section className="panel-card">
-        <h2 className="panel-title">ช่วยเหลือ</h2>
+        <h2 className="panel-title">{t(lang, 'side.help')}</h2>
         <button type="button" className="btn btn--soft btn--block" onClick={onReveal} disabled={!canReveal}>
-          เฉลยช่องที่เลือก
+          {t(lang, 'side.reveal')}
         </button>
         <button type="button" className="btn btn--ghost btn--block" onClick={onRestart}>
-          เริ่มกระดานนี้ใหม่
+          {t(lang, 'side.restart')}
         </button>
-        <p className="panel-note">การเฉลยจะถูกนับเป็นการใช้คำใบ้</p>
+        <p className="panel-note">{t(lang, 'side.revealNote')}</p>
       </section>
 
       <section className="panel-card">
-        <h2 className="panel-title">การตั้งค่า</h2>
+        <h2 className="panel-title">{t(lang, 'side.settings')}</h2>
         <Toggle
-          label="ไฮไลต์เลขที่ผิด"
-          description="ขึ้นสีแดงทันทีที่ใส่เลขผิด"
+          label={t(lang, 'settings.showMistakes')}
+          description={t(lang, 'settings.showMistakesDesc')}
           checked={settings.showMistakes}
           onChange={(v) => onChangeSettings({ showMistakes: v })}
         />
         <Toggle
-          label="ไฮไลต์บล็อก 3×3"
-          description="เน้นช่องในบล็อกเดียวกับช่องที่เลือก"
+          label={t(lang, 'settings.highlightPeers')}
+          description={t(lang, 'settings.highlightPeersDesc')}
           checked={settings.highlightPeers}
           onChange={(v) => onChangeSettings({ highlightPeers: v })}
         />
         <Toggle
-          label="ไฮไลต์แนวนอน/แนวตั้ง"
-          description="กดช่องไหน จะเน้นทั้งแถวและทั้งคอลัมน์ของช่องนั้น"
+          label={t(lang, 'settings.highlightLines')}
+          description={t(lang, 'settings.highlightLinesDesc')}
           checked={settings.highlightLines}
           onChange={(v) => onChangeSettings({ highlightLines: v })}
         />
         <Toggle
-          label="ไฮไลต์เลขเดียวกัน"
-          description="เน้นช่องที่มีเลขซ้ำกับช่องที่เลือก"
+          label={t(lang, 'settings.highlightSame')}
+          description={t(lang, 'settings.highlightSameDesc')}
           checked={settings.highlightSame}
           onChange={(v) => onChangeSettings({ highlightSame: v })}
         />
         <Toggle
-          label="ลบโน้ตอัตโนมัติ"
-          description="วางเลขแล้วตัดโน้ตนั้นในช่องเพื่อนบ้าน"
+          label={t(lang, 'settings.autoCleanNotes')}
+          description={t(lang, 'settings.autoCleanNotesDesc')}
           checked={settings.autoCleanNotes}
           onChange={(v) => onChangeSettings({ autoCleanNotes: v })}
         />
+
+        <div className="setting-row setting-row--lang">
+          <span className="setting-text">
+            <span className="setting-label">{t(lang, 'settings.language')}</span>
+            <span className="setting-hint">{t(lang, 'settings.languageDesc')}</span>
+          </span>
+          <span className="lang-choices" role="group" aria-label={t(lang, 'settings.language')}>
+            {LANGS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                data-lang={item.key}
+                className={`lang-choice${settings.lang === item.key ? ' lang-choice--active' : ''}`}
+                aria-pressed={settings.lang === item.key}
+                onClick={() => onChangeSettings({ lang: item.key })}
+              >
+                {item.label}
+              </button>
+            ))}
+          </span>
+        </div>
       </section>
 
       <section className="panel-card panel-card--muted">
-        <h2 className="panel-title">ข้อมูลใน localStorage</h2>
+        <h2 className="panel-title">{t(lang, 'side.storage')}</h2>
         <p className="panel-note">
-          {usage.entries} รายการ · {(usage.bytes / 1024).toFixed(1)} KB — เก็บในเบราว์เซอร์นี้เท่านั้น ไม่มีเซิร์ฟเวอร์
+          {t(lang, 'side.storageNote', {
+            n: usage.entries,
+            kb: (usage.bytes / 1024).toFixed(1),
+          })}
         </p>
         {confirmClear ? (
           <div className="confirm-row">
@@ -191,15 +215,15 @@ export function SidePanel({
                 setConfirmClear(false)
               }}
             >
-              ยืนยันล้างสถิติ
+              {t(lang, 'side.confirmClear')}
             </button>
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfirmClear(false)}>
-              ยกเลิก
+              {t(lang, 'side.cancel')}
             </button>
           </div>
         ) : (
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfirmClear(true)}>
-            ล้างสถิติ
+            {t(lang, 'side.clearStats')}
           </button>
         )}
       </section>

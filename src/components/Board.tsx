@@ -1,6 +1,8 @@
 import { memo, useMemo } from 'react'
 import { PEERS } from '../lib/sudoku'
 import type { Grid } from '../lib/sudoku'
+import { t } from '../lib/i18n'
+import type { Lang } from '../lib/i18n'
 
 interface BoardProps {
   values: Grid
@@ -13,6 +15,7 @@ interface BoardProps {
   highlightSame: boolean
   highlightLines: boolean
   paused: boolean
+  lang: Lang
   onSelect: (cell: number) => void
   onResume: () => void
 }
@@ -30,6 +33,7 @@ function BoardComponent({
   highlightSame,
   highlightLines,
   paused,
+  lang,
   onSelect,
   onResume,
 }: BoardProps) {
@@ -44,7 +48,11 @@ function BoardComponent({
 
   return (
     <div className="board-wrap">
-      <div className={`board${paused ? ' board--paused' : ''}`} role="grid" aria-label="กระดานซูโดกุ 9 คูณ 9">
+      <div
+        className={`board${paused ? ' board--paused' : ''}`}
+        role="grid"
+        aria-label={t(lang, 'board.label')}
+      >
         {Array.from({ length: 81 }, (_, i) => {
           const value = values[i]
           const classes = ['cell']
@@ -73,7 +81,9 @@ function BoardComponent({
               role="gridcell"
               data-cell={i}
               data-value={value || ''}
-              aria-label={`แถว ${row} คอลัมน์ ${col}${value ? ` ค่า ${value}` : ' ว่าง'}`}
+              aria-label={`${t(lang, 'board.cell', { row, col })}${
+                value ? t(lang, 'board.value', { value }) : t(lang, 'board.empty')
+              }`}
               aria-selected={i === selected}
               className={classes.join(' ')}
               onClick={() => onSelect(i)}
@@ -105,9 +115,9 @@ function BoardComponent({
             <span className="board-paused__icon" aria-hidden="true">
               ⏸
             </span>
-            <p>หยุดเวลาไว้แล้ว</p>
+            <p>{t(lang, 'board.paused')}</p>
             <button type="button" className="btn btn--primary" onClick={onResume}>
-              เล่นต่อ
+              {t(lang, 'topbar.resume')}
             </button>
           </div>
         </div>

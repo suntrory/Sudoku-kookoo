@@ -1,39 +1,25 @@
 /**
- * ระบบช่วยเหลือผู้เล่น (hint engine)
+ * ระบบช่วยเหลือผู้เล่น (hint engine) — 2 ภาษา (EN/TH)
  * - ตรวจช่องที่ใส่ผิดก่อน
  * - ถ้ากระดานยังถูก ให้ใช้เทคนิค logic จริง (Naked/Hidden Single, Locked Candidates,
- *   Naked/Hidden Pair, X-Wing) แล้วอธิบายเป็นภาษาไทย
+ *   Naked/Hidden Pair, X-Wing) แล้วอธิบายตามภาษาที่ผู้ใช้เลือก
  * - ถ้า logic ตันทุกทาง ค่อยเฉลยช่องที่แคบที่สุด (Guess)
  *
  * ความปลอดภัย: hint ทุกอันถูก "sanitize" เทียบกับเฉลยก่อนส่งให้ UI
  * ถ้า logic คำนวณพลาด จะไม่มีการแนะนำเลขผิดออกไปเด็ดขาด
  */
-import {
-  UNIT_NAMES,
-  cellCol,
-  cellRow,
-  computeCandidates,
-  findLogicalStep,
-  popcount,
-} from './sudoku'
+import { cellCol, cellRow, computeCandidates, findLogicalStep, popcount } from './sudoku'
 import type { Grid, Step, Technique } from './sudoku'
+import { cellListText, t, unitName } from './i18n'
+import type { Lang } from './i18n'
 
-export const TECHNIQUE_TH: Record<Technique, string> = {
+export const TECHNIQUE_LABEL: Record<Technique, string> = {
   'naked-single': 'Naked Single',
   'hidden-single': 'Hidden Single',
   'locked-candidates': 'Locked Candidates',
   'naked-pair': 'Naked Pair',
   'hidden-pair': 'Hidden Pair',
   'x-wing': 'X-Wing',
-}
-
-export const TECHNIQUE_HINT_TH: Record<Technique, string> = {
-  'naked-single': 'ช่องนี้เหลือตัวเลือกเดียว',
-  'hidden-single': 'เลขนี้เหลือที่เดียวในยูนิต',
-  'locked-candidates': 'ตัดตัวเลือกด้วยตำแหน่งที่ถูกล็อก',
-  'naked-pair': 'สองช่องนี้จับคู่กัน',
-  'hidden-pair': 'สองเลขนี้อยู่ได้แค่สองช่อง',
-  'x-wing': 'รูปแบบ X-Wing',
 }
 
 export type HintKind = 'mistake' | 'place' | 'eliminate' | 'reveal'
@@ -54,17 +40,10 @@ export function cellName(cell: number): string {
   return `R${cellRow(cell) + 1}C${cellCol(cell) + 1}`
 }
 
-function cellList(cells: number[], limit = 4): string {
-  const names = cells.slice(0, limit).map(cellName)
-  return cells.length > limit ? `${names.join(', ')} และอีก ${cells.length - limit} ช่อง` : names.join(', ')
-}
+const digitsText = (digits: number[]): string => digits.join(', ')
 
-function digitList(digits: number[]): string {
-  return digits.join(', ')
-}
-
-function describeStep(step: Step): Hint {
-  const unitName = step.unit !== undefined ? UNIT_NAMES[step.unit] : 'ยูนิต'
+function describeStep(step: Step, lang: Lang): Hint {
+  const unit = step.unit !== undefined ? unitName(lang, step.unit) : t(lang, 'unit.unit')
 
   if (step.type === 'place' && step.cell !== undefined && step.digit !== undefined) {
     const base = {
@@ -76,14 +55,21 @@ function describeStep(step: Step): Hint {
     if (step.technique === 'naked-single') {
       return {
         ...base,
-        title: `Naked Single · ${cellName(step.cell)}`,
-        body: `ช่อง ${cellName(step.cell)} เหลือตัวเลือกเดียวคือ ${step.digit} เพราะเลขอื่นถูกตัดออกหมดจากแถว คอลัมน์ และบล็อกแล้ว`,
+        title: `${TECHNIQUE_LABEL[step.technique]} · ${cellName(step.cell)}`,
+        body: t(lang, 'hint.nakedSingle.body', {
+          cell: cellName(step.cell),
+          digit: step.digit,
+        }),
       }
     }
     return {
       ...base,
-      title: `Hidden Single · ${cellName(step.cell)}`,
-      body: `ใน${unitName} มีช่องเดียวที่ใส่เลข ${step.digit} ได้ คือ ${cellName(step.cell)}`,
+      title: `${TECHNIQUE_LABEL[step.technique]} · ${cellName(step.cell)}`,
+      body: t(lang, 'hint.hiddenSingle.body', {
+        unit,
+        digit: step.digit,
+        cell: cellName(step.cell),
+      }),
     }
   }
 
@@ -102,32 +88,52 @@ function describeStep(step: Step): Hint {
     case 'locked-candidates':
       return {
         ...base,
-        title: `Locked Candidates (${digits.length ? digitList(digits) : '—'})`,
-        body: `ใน${unitName} เลข ${digitList(digits)} รวมตัวอยู่แค่ ${cellList(step.cells, 3)} จึงตัดเลข ${digitList(digits)} ออกจากช่อง ${cellList(targets)} ได้`,
+        title: t(lang, 'hint.locked.title', { digits: digitsText(digits) }),
+        body: t(lang, 'hint.locked.body', {
+          unit,
+          digits: digitsText(digits),
+          cells: cellListText(lang, step.cells, 3),
+          targets: cellListText(lang, targets),
+        }),
       }
     case 'naked-pair':
       return {
         ...base,
-        title: `Naked Pair · {${digitList(digits)}}`,
-        body: `ช่อง ${cellList(step.cells, 2)} มีตัวเลือกแค่ {${digitList(digits)}} เหมือนกัน สองช่องนี้จึงต้องเป็นสองเลขนี้ → ตัดออกจากช่องอื่นใน${unitName}`,
+        title: t(lang, 'hint.nakedPair.title', { digits: digitsText(digits) }),
+        body: t(lang, 'hint.nakedPair.body', {
+          cells: cellListText(lang, step.cells, 2),
+          digits: digitsText(digits),
+          unit,
+        }),
       }
     case 'hidden-pair':
       return {
         ...base,
-        title: `Hidden Pair · {${digitList(digits)}}`,
-        body: `ใน${unitName} เลข ${digitList(digits)} อยู่ได้แค่ ${cellList(step.cells, 2)} → สองช่องนี้เหลือแค่สองเลขนี้ ตัดตัวเลือกอื่นทิ้ง`,
+        title: t(lang, 'hint.hiddenPair.title', { digits: digitsText(digits) }),
+        body: t(lang, 'hint.hiddenPair.body', {
+          unit,
+          digits: digitsText(digits),
+          cells: cellListText(lang, step.cells, 2),
+        }),
       }
     case 'x-wing':
       return {
         ...base,
-        title: `X-Wing · เลข ${digitList(digits)}`,
-        body: `เลข ${digitList(digits)} วางเป็นมุมสี่เหลี่ยมที่ ${cellList(step.cells, 4)} → ตัดเลข ${digitList(digits)} ออกจากช่อง ${cellList(targets)}`,
+        title: t(lang, 'hint.xwing.title', { digits: digitsText(digits) }),
+        body: t(lang, 'hint.xwing.body', {
+          digits: digitsText(digits),
+          cells: cellListText(lang, step.cells, 4),
+          targets: cellListText(lang, targets),
+        }),
       }
     default:
       return {
         ...base,
-        title: TECHNIQUE_TH[step.technique],
-        body: `ตัดเลข ${digitList(digits)} ออกจาก ${cellList(targets)}`,
+        title: t(lang, 'hint.generic.title'),
+        body: t(lang, 'hint.generic.body', {
+          digits: digitsText(digits),
+          targets: cellListText(lang, targets),
+        }),
       }
   }
 }
@@ -147,7 +153,7 @@ function sanitize(step: Step, solution: Grid): Step | null {
 }
 
 /** หา hint ที่เหมาะสมกับกระดานปัจจุบัน (null = กระดานเต็มแล้ว) */
-export function findHint(values: Grid, solution: Grid): Hint | null {
+export function findHint(values: Grid, solution: Grid, lang: Lang = 'en'): Hint | null {
   // 1) มีเลขที่ผิดอยู่ → บอกให้แก้ก่อน (ไม่นับเป็น hint)
   const wrong: number[] = []
   for (let i = 0; i < 81; i++) if (values[i] && values[i] !== solution[i]) wrong.push(i)
@@ -155,8 +161,8 @@ export function findHint(values: Grid, solution: Grid): Hint | null {
     return {
       kind: 'mistake',
       cells: wrong.slice(0, 16),
-      title: `มีเลขผิด ${wrong.length} ช่อง`,
-      body: `ช่อง ${cellList(wrong)} ยังไม่ตรงกับเฉลย — กด "ตรวจ" เพื่อไฮไลต์ หรือลบเลขนั้นออกแล้วลองใหม่`,
+      title: t(lang, 'hint.mistake.title', { n: wrong.length }),
+      body: t(lang, 'hint.mistake.body', { cells: cellListText(lang, wrong) }),
     }
   }
 
@@ -164,7 +170,7 @@ export function findHint(values: Grid, solution: Grid): Hint | null {
   const step = findLogicalStep(values)
   if (step) {
     const checked = sanitize(step, solution)
-    if (checked) return describeStep(checked)
+    if (checked) return describeStep(checked, lang)
   }
 
   // 3) ทางตัน → เฉลยช่องที่ตัวเลือกน้อยที่สุด
@@ -185,15 +191,11 @@ export function findHint(values: Grid, solution: Grid): Hint | null {
     kind: 'reveal',
     cells: [best],
     digit: solution[best],
-    title: `ทางตัน · เฉลยช่อง ${cellName(best)}`,
-    body: `เทคนิคพื้นฐานที่ระบบมีใช้ต่อไม่ได้แล้ว ช่อง ${cellName(best)} เป็นช่องที่เหลือตัวเลือกน้อยที่สุด (${bestCount} ตัว) — คำตอบคือ ${solution[best]} ถ้าอยากลองเองให้เดาช่องนี้`,
+    title: t(lang, 'hint.reveal.title', { cell: cellName(best) }),
+    body: t(lang, 'hint.reveal.body', {
+      cell: cellName(best),
+      count: bestCount,
+      digit: solution[best],
+    }),
   }
-}
-
-/** ข้อความสั้น ๆ สำหรับปุ่มถูกใช้ */
-export const HINT_KIND_LABEL: Record<HintKind, string> = {
-  mistake: 'ตรวจพบข้อผิดพลาด',
-  place: 'เติมเลขให้',
-  eliminate: 'ตัดตัวเลือกให้',
-  reveal: 'เฉลยให้',
 }

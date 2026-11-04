@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react'
 import { DIFFICULTIES, DIFFICULTY_META, formatTime } from '../lib/sudoku'
 import type { Difficulty } from '../lib/sudoku'
 import type { Theme } from '../lib/theme'
+import { t } from '../lib/i18n'
+import type { Lang } from '../lib/i18n'
 
 interface TopBarProps {
   difficulty: Difficulty
@@ -9,9 +11,11 @@ interface TopBarProps {
   paused: boolean
   status: 'playing' | 'won'
   theme: Theme
+  lang: Lang
   onNewGame: (difficulty: Difficulty) => void
   onTogglePause: () => void
   onToggleTheme: () => void
+  onToggleLang: () => void
 }
 
 export function TopBar({
@@ -20,11 +24,13 @@ export function TopBar({
   paused,
   status,
   theme,
+  lang,
   onNewGame,
   onTogglePause,
   onToggleTheme,
+  onToggleLang,
 }: TopBarProps) {
-  const nextLabel = theme === 'dark' ? 'เปลี่ยนเป็นธีมสว่าง' : 'เปลี่ยนเป็นธีมมืด'
+  const nextLabel = t(lang, theme === 'dark' ? 'topbar.themeToLight' : 'topbar.themeToDark')
   return (
     <header className="app-header">
       <div className="brand">
@@ -33,7 +39,7 @@ export function TopBar({
         </span>
         <div className="brand-text">
           <h1>Sudoku</h1>
-          <p>เลข 1–9 ไม่ซ้ำในแถว คอลัมน์ และบล็อก</p>
+          <p>{t(lang, 'app.subtitle')}</p>
         </div>
       </div>
 
@@ -55,15 +61,24 @@ export function TopBar({
         </button>
         <button
           type="button"
+          className="btn btn--ghost lang-toggle"
+          onClick={onToggleLang}
+          aria-label={t(lang, lang === 'en' ? 'topbar.langToThai' : 'topbar.langToEnglish')}
+          title={t(lang, lang === 'en' ? 'topbar.langToThai' : 'topbar.langToEnglish')}
+        >
+          {lang === 'en' ? 'EN' : 'TH'}
+        </button>
+        <button
+          type="button"
           className="btn btn--ghost"
           onClick={onTogglePause}
           disabled={status === 'won'}
-          aria-label={paused ? 'เล่นต่อ' : 'หยุดพัก'}
+          aria-label={t(lang, paused ? 'topbar.resume' : 'topbar.pause')}
         >
-          {paused ? '▶ เล่นต่อ' : '⏸ หยุด'}
+          {paused ? `▶ ${t(lang, 'topbar.resume')}` : `⏸ ${t(lang, 'topbar.pause')}`}
         </button>
         <button type="button" className="btn btn--primary" onClick={() => onNewGame(difficulty)}>
-          + เกมใหม่
+          {t(lang, 'topbar.newGame')}
         </button>
       </div>
     </header>
@@ -72,13 +87,14 @@ export function TopBar({
 
 interface DifficultyPickerProps {
   current: Difficulty
+  lang: Lang
   onPick: (difficulty: Difficulty) => void
 }
 
-export function DifficultyPicker({ current, onPick }: DifficultyPickerProps) {
+export function DifficultyPicker({ current, lang, onPick }: DifficultyPickerProps) {
   return (
     <div className="difficulty">
-      <div className="segmented" role="tablist" aria-label="ระดับความยาก">
+      <div className="segmented" role="tablist" aria-label={t(lang, 'topbar.difficultyLabel')}>
         {DIFFICULTIES.map((d) => {
           const meta = DIFFICULTY_META[d]
           const active = d === current
@@ -94,13 +110,13 @@ export function DifficultyPicker({ current, onPick }: DifficultyPickerProps) {
               onClick={() => onPick(d)}
             >
               <span className="seg-dot" style={{ background: meta.accent }} aria-hidden="true" />
-              {meta.labelTh}
-              <span className="seg-en">{meta.label}</span>
+              {lang === 'th' ? meta.labelTh : meta.label}
+              <span className="seg-en">{lang === 'th' ? meta.label : meta.labelTh}</span>
             </button>
           )
         })}
       </div>
-      <p className="difficulty-note">{DIFFICULTY_META[current].blurb}</p>
+      <p className="difficulty-note">{t(lang, `blurb.${current}`)}</p>
     </div>
   )
 }

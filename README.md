@@ -1,5 +1,7 @@
 # Sudoku — React + Vite
 
+**English (default UI):** a Sudoku game with three difficulty levels, technique-based hints, and every generated board verified to have a unique solution you can actually finish. Bilingual English/Thai, dark & light themes, and all data lives in `localStorage` — no backend.
+
 เกมซูโดกุ 3 ระดับความยาก พร้อมระบบช่วยเหลือผู้เล่น และ **ตรวจสอบทุกกระดานที่สร้างขึ้น** ว่าแก้จบได้ถูกต้อง (คำตอบเดียว) — ข้อมูลทั้งหมดเก็บใน `localStorage` ไม่มี backend
 
 ```bash
@@ -39,11 +41,12 @@ docker run -d --name sudoku-web -p 8080:8080 --read-only \
 
 - **3 ระดับ**: ง่าย (41–47 เลขตั้งต้น, ใช้ Singles เท่านั้น) · ปานกลาง (33–39) · ยาก (26–31, อาจต้องลอง)
 - **ระบบช่วยเหลือ**
-  - คำใบ้แบบ **สอนเทคนิค**: Naked Single, Hidden Single, Locked Candidates, Naked/Hidden Pair, X-Wing พร้อมคำอธิบายภาษาไทยและไฮไลต์ช่อง
+  - คำใบ้แบบ **สอนเทคนิค**: Naked Single, Hidden Single, Locked Candidates, Naked/Hidden Pair, X-Wing พร้อมคำอธิบาย (EN/TH) และไฮไลต์ช่อง
   - ถ้า logic ตันทุกทาง → เฉลยช่องที่แคบที่สุด (Guess)
   - ตรวจกระดาน (ไฮไลต์ช่องที่ผิด), เฉลยช่องที่เลือก, โหมดจดโน้ต, ย้อนกลับ (undo)
   - **ไฮไลต์แนวเมื่อกดช่อง**: ทั้งแถว (แนวนอน) และคอลัมน์ (แนวตั้ง) + บล็อก 3×3 + เลขเดียวกัน (เปิด/ปิดได้ในการตั้งค่า)
 - **2 ธีม**: มืด / สว่าง — สลับได้จากปุ่มบน header จำค่าไว้ใน localStorage (ค่าเริ่มต้นตามระบบ)
+- **2 ภาษา (EN/TH) — ภาษาอังกฤษเป็นค่าเริ่มต้น**: สลับได้จากปุ่ม `EN`/`TH` บน header หรือแถว Language ในหน้าตั้งค่า จำค่าไว้ใน localStorage (`settings.lang`) — คำใบ้และข้อความใน hint card เปลี่ยนภาษาตามทันที
 - **ตรวจสอบทุกกระดาน**: ทุก puzzle ถูก verify ก่อนส่งให้ผู้เล่น (unique solution + เฉลย valid + givens ตรงกับเฉลย + แก้จาก givens ไปเฉลยได้จริง)
 - **localStorage**: เกมที่ค้างไว้ ( resume ได้หลังรีเฟรช), สถิติแยกตามระดับ (เวลาดีที่สุด, จำนวนที่เล่น/แก้สำเร็จ), การตั้งค่า
 - คีย์บอร์ด: ลูกศรเลื่อน · 1–9 ใส่เลข · Backspace ลบ · N โน้ต · H คำใบ้ · U ย้อนกลับ · P หยุด
@@ -55,7 +58,8 @@ Dockerfile            # multi-stage: node build → nginx (unprivileged) serve
 nginx/default.conf    # gzip, cache, SPA fallback, security headers, /healthz
 docker-compose.yml    # service เดียว พอร์ต 8080 + healthcheck
 src/lib/sudoku.ts     # engine: bitmask solver, generator, uniqueness, rating, verification
-src/lib/hints.ts      # hint engine + ข้อความอธิบายภาษาไทย (sanitize กับเฉลยทุกครั้ง)
+src/lib/i18n.ts       # พจนานุกรม EN/TH + t() + unitName/cellListText (DEFAULT_LANG = 'en')
+src/lib/hints.ts      # hint engine + ข้อความอธิบาย 2 ภาษา (sanitize กับเฉลยทุกครั้ง)
 src/lib/storage.ts    # localStorage schema + validation ตอนโหลด
 src/hooks/useGame.ts  # game state (reducer), timer, persistence
 src/components/       # Board, NumberPad, Toolbar, HintCard, SidePanel, WinDialog, TopBar
@@ -87,6 +91,6 @@ scripts/verify.ts     # ชุดทดสอบ engine (ดูหัวข้�
 |---|---|
 | `sudoku.v1.game` | puzzle + ค่าที่กรอก + โน้ต + เวลา + จำนวนคำใบ้/เลขผิด |
 | `sudoku.v1.stats` | สถิติแยกตามระดับ + 12 เกมล่าสุด |
-| `sudoku.v1.settings` | การตั้งค่าไฮไลต์/โน้ตอัตโนมัติ |
+| `sudoku.v1.settings` | การตั้งค่าไฮไลต์/โน้ตอัตโนมัติ + `lang` (`en` หรือ `th`, ค่าเริ่มต้น `en`) |
 
 ตอนโหลดเกมจะ re-verify puzzle ทุกครั้ง ถ้าข้อมูลเสียหรือถูกแก้จะไม่ถูกโหลด (เริ่มเกมใหม่แทน)
